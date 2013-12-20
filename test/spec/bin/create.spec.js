@@ -7,7 +7,10 @@ var child_process = require('child_process'),
     ROOT = path.join(__dirname, '..', '..', '..'),
     script = path.join(ROOT,
                        'bin',
-                       'create' + (os.platform === 'win32'? '.bat' : ''));
+                       'create' + (os.platform === 'win32'? '.bat' : '')),
+    update = path.join(ROOT,
+                       'bin',
+                       'update' + (os.platform === 'win32'? '.bat' : ''));
 
 (function initTestDir() {
     cwd = mkDir(os.tmpdir(), 'cordova-nodewebkit-tests');
@@ -56,14 +59,14 @@ describe('bin/create', function () {
     it('should rc=EX_USAGE + help message if called with bad params', function(done) {
         runScript(script, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
-            expect(stderr).toMatch(/^Usage: /);
+            expect(stderr).toMatch(/^Usage: create/);
         });
     });
     it('should rc=EX_USAGE + help message if called with --help', function(done) {
         var cmd = script + ' --help ' + projDir + ' projName';
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
-            expect(stderr).toMatch(/^Usage: /);
+            expect(stderr).toMatch(/^Usage: create/);
         });
     });
     it('should rc=EX_USAGE + error message if called with existing path', function(done) {
@@ -83,22 +86,45 @@ describe('bin/create', function () {
             expect(stderr).toMatch(/^$/);
         });
     });
-    xit('should copy the bin/template/project', function(done) {
-        var cmd = script + ' ' + projDir + ' projName',
-            tgt = path.join(cwd, projDir);
-        runScript(cmd, done, function(error, stdout, stderr) {
-            expect(error).toBe(null);
-            expect(fs.existsSync(tgt)).toBeTruthy();
-            expect(stderr).toMatch(/^$/);
+});
+
+describe('bin/update', function () {
+    var projDir = 'theProjDir';
+    it('should rc=EX_USAGE + help message if called with bad params', function(done) {
+        runScript(update, done, function(error, stdout, stderr) {
+            expect(error.code).toBe(64);
+            expect(stderr).toMatch(/^Usage: update/);
         });
     });
-
-
-    xdescribe('lib/create.js failure', function() {
-        it('should provide a help message if incorrect number of parameters is used', function(done) {
-            expect('test').toBe('implemented');
-            done();
+    it('should rc=EX_USAGE + help message if called with --help', function(done) {
+        var cmd = update + ' --help ' + projDir;
+        runScript(cmd, done, function(error, stdout, stderr) {
+            expect(error.code).toBe(64);
+            expect(stderr).toMatch(/^Usage: update/);
         });
+    });
+    it('should rc=EX_NOINPUT + error message if called with non existing path', function(done) {
+        var cmd = update + ' ' + projDir;
+        rmDirInCwd(projDir);
+        runScript(cmd, done, function(error, stdout, stderr) {
+            expect(error.code).toBe(66);
+            expect(stderr).toMatch(/^Project not found\s$/);
+        });
+    });
+    it('should rc=0 and an updated cordova.js when properly called', function(done) {
+        var cmd1 = script + ' ' + projDir + ' projName',
+            cmd2 = update + ' ' + projDir,
+            tgt = rmDirInCwd(projDir),
+            cordovajs = path.join(tgt, 'app', 'www', 'cordova.js'),
+            libCordovajs = path.join(ROOT, 'cordova-lib', 'cordova.js');
+        runScript(cmd1, onCreated);
+        function onCreated() {
+            shelljs.sed('-i', /var /gm, 'var  ', cordovajs);
+            runScript(cmd2, done, function(error /*, stdout, stderr*/) {
+                expect(error).toBe(null);
+                expect(sameContents(cordovajs, libCordovajs)).toBeTruthy();
+            });
+        }
     });
 });
 
@@ -145,3 +171,4 @@ describe('default project layout', function() {
         expect(manifest.window.title).toBe(projName);
     });
 });
+
