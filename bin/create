@@ -18,19 +18,6 @@
        specific language governing permissions and limitations
        under the License.
 */
-var path = require('path');
-var create = require('./lib/create');
-var args  = require('./lib/simpleargs').getArgs(process.argv);
 
-if (args['--help'] || args._.length === 0) {
-    console.log('Usage: ' + path.relative(process.cwd(), path.join(__dirname, 'create')) + ' <path_to_new_project> <package_name> <project_name> [<template_path>] [--shared]');
-    console.log('    <path_to_new_project>: Path to your new Cordova Android project');
-    console.log('    <package_name>: Package name, following reverse-domain style convention');
-    console.log('    <project_name>: Project name');
-    console.log('    <template_path>: Path to a custom application template to use');
-    console.log('    --shared will use the CordovaLib project directly instead of making a copy.');
-    process.exit(1);
-}
-
-create.createProject(args._[0], args._[1], args._[2], args._[3], args['--shared']).done();
+process.exit(require('./lib/create').createProjectFromCmdLine());
 

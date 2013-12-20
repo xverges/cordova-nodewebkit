@@ -1,0 +1,7 @@
+{
+    "main": "www/index.html",
+    "name": "__PROJECT_NAME__",
+    "window": {
+        "title": "__PROJECT_NAME__"
+    }
+}

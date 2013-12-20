@@ -19,13 +19,7 @@
        under the License.
 */
 
-var check_reqs = require('./lib/check_reqs');
+// By now, the only requirement is to be able to run node
+// We may need want to check for OS versions later on
 
-check_reqs.run().done(
-    function success() {
-        console.log('Looks like your environment fully supports cordova-android development!');
-    }, function fail(err) {
-        console.log(err);
-        process.exit(2);
-    }
-);
+console.log('Looks like your environment fully supports cordova-nodewebkit development!');
