@@ -1,10 +1,10 @@
 var child_process = require('child_process'),
-    cwd,
     fs = require('fs'),
     os = require('os'),
     path = require('path'),
     shelljs = require('shelljs'),
     ROOT = path.join(__dirname, '..', '..', '..'),
+    testDir = mkDir(os.tmpdir(), 'cordova-nodewebkit-tests'),
     script = path.join(ROOT,
                        'bin',
                        'create' + (os.platform === 'win32'? '.bat' : '')),
@@ -12,19 +12,16 @@ var child_process = require('child_process'),
                        'bin',
                        'update' + (os.platform === 'win32'? '.bat' : ''));
 
-(function initTestDir() {
-    cwd = mkDir(os.tmpdir(), 'cordova-nodewebkit-tests');
-})();
 
-function rmDirInCwd(name) {
-    var dir = path.join(cwd, name);
+function rmDirInTestDir(name) {
+    var dir = path.join(testDir, name);
     if (shelljs.test('-d', dir)) {
         shelljs.rm('-rf', dir);
     }
     return dir;
 }
-function mkDirInCwd(name) {
-    return mkDir(cwd, name);
+function mkDirInTestDir(name) {
+    return mkDir(testDir, name);
 }
 function mkDir(base, name) {
     var dir = path.join(base, name);
@@ -43,7 +40,7 @@ function runScript(cmdLine, done, check) {
         }
         done();
     }
-    child_process.exec(cmdLine, {cwd: cwd}, cb);
+    child_process.exec(cmdLine, {cwd: testDir}, cb);
 }
 
 function sameContents(file1, file2) {
@@ -71,7 +68,7 @@ describe('bin/create', function () {
     });
     it('should rc=EX_USAGE + error message if called with existing path', function(done) {
         var cmd = script + ' ' + projDir + ' projName';
-        mkDirInCwd(projDir);
+        mkDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
             expect(stderr).toMatch(/^Project already exists. Delete and recreate\s$/);
@@ -79,7 +76,7 @@ describe('bin/create', function () {
     });
     it('should rc=0 and a new project dir when properly called', function(done) {
         var cmd = script + ' ' + projDir + ' projName',
-            tgt = rmDirInCwd(projDir);
+            tgt = rmDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error).toBe(null);
             expect(fs.existsSync(tgt)).toBeTruthy();
@@ -105,7 +102,7 @@ describe('bin/update', function () {
     });
     it('should rc=EX_NOINPUT + error message if called with non existing path', function(done) {
         var cmd = update + ' ' + projDir;
-        rmDirInCwd(projDir);
+        rmDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(66);
             expect(stderr).toMatch(/^Project not found\s$/);
@@ -114,7 +111,7 @@ describe('bin/update', function () {
     it('should rc=0 and an updated cordova.js when properly called', function(done) {
         var cmd1 = script + ' ' + projDir + ' projName',
             cmd2 = update + ' ' + projDir,
-            tgt = rmDirInCwd(projDir),
+            tgt = rmDirInTestDir(projDir),
             cordovajs = path.join(tgt, 'app', 'www', 'cordova.js'),
             libCordovajs = path.join(ROOT, 'cordova-lib', 'cordova.js');
         runScript(cmd1, onCreated);
@@ -134,7 +131,7 @@ describe('default project layout', function() {
         manifest,
         manifestFile,
         cmd = script + ' ' + projDir + ' ' + projName,
-        tgt = rmDirInCwd(projDir);
+        tgt = rmDirInTestDir(projDir);
     beforeEach(function() {
         var done = false;
         if (!shelljs.test('-d', tgt)) {
