@@ -7,6 +7,7 @@ var EX_NOINPUT = 66,
     EX_USAGE = 64,
     HELP =  'Usage: create <projectPath> <projectName> [<projectTemplate>]\n' +
             '   <projectPath>: path to your new cordova-nodewebkit project\n' +
+            '   <unusedPkgName>: just to be consistent with the cordova family\n' +
             '   <projectName>: name of the project\n' +
             '   <projectTemplate>: path to custom app template to use\n',
     HELPU = 'Usage: update <projectPath>\n' +
@@ -19,10 +20,10 @@ module.exports = {
     createProjectFromCmdLine: function() {
         var args  = simpleargs.getArgs(process.argv),
             rc;
-        if (args['--help'] || args._.length < 2) {
+        if (args['--help'] || args._.length < 3) {
             rc = this.showSyntax();
         } else {
-            rc= this.createProject(args._[0], args._[1], args._[2]);
+            rc= this.createProject(args._[0], args._[2], args._[3]);
         }
         return rc;
     },

@@ -5,12 +5,12 @@ var child_process = require('child_process'),
     shelljs = require('shelljs'),
     ROOT = path.join(__dirname, '..', '..', '..'),
     testDir = mkDir(os.tmpdir(), 'cordova-nodewebkit-tests'),
-    script = path.join(ROOT,
-                       'bin',
-                       'create' + (os.platform === 'win32'? '.bat' : '')),
-    update = path.join(ROOT,
-                       'bin',
-                       'update' + (os.platform === 'win32'? '.bat' : ''));
+    createScript = path.join(ROOT,
+                             'bin',
+                             'create' + (os.platform === 'win32'? '.bat' : '')),
+    updateScript = path.join(ROOT,
+                             'bin',
+                             'update' + (os.platform === 'win32'? '.bat' : ''));
 
 
 function rmDirInTestDir(name) {
@@ -54,20 +54,20 @@ function sameContents(file1, file2) {
 describe('bin/create', function () {
     var projDir = 'theProjDir';
     it('should rc=EX_USAGE + help message if called with bad params', function(done) {
-        runScript(script, done, function(error, stdout, stderr) {
+        runScript(createScript, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
             expect(stderr).toMatch(/^Usage: create/);
         });
     });
     it('should rc=EX_USAGE + help message if called with --help', function(done) {
-        var cmd = script + ' --help ' + projDir + ' projName';
+        var cmd = createScript + ' --help ' + projDir + ' pkg projName';
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
             expect(stderr).toMatch(/^Usage: create/);
         });
     });
     it('should rc=EX_USAGE + error message if called with existing path', function(done) {
-        var cmd = script + ' ' + projDir + ' projName';
+        var cmd = createScript + ' ' + projDir + ' pkg projName';
         mkDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
@@ -75,7 +75,7 @@ describe('bin/create', function () {
         });
     });
     it('should rc=0 and a new project dir when properly called', function(done) {
-        var cmd = script + ' ' + projDir + ' projName',
+        var cmd = createScript + ' ' + projDir + ' pkg projName',
             tgt = rmDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error).toBe(null);
@@ -88,20 +88,20 @@ describe('bin/create', function () {
 describe('bin/update', function () {
     var projDir = 'theProjDir';
     it('should rc=EX_USAGE + help message if called with bad params', function(done) {
-        runScript(update, done, function(error, stdout, stderr) {
+        runScript(updateScript, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
             expect(stderr).toMatch(/^Usage: update/);
         });
     });
     it('should rc=EX_USAGE + help message if called with --help', function(done) {
-        var cmd = update + ' --help ' + projDir;
+        var cmd = updateScript + ' --help ' + projDir;
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(64);
             expect(stderr).toMatch(/^Usage: update/);
         });
     });
     it('should rc=EX_NOINPUT + error message if called with non existing path', function(done) {
-        var cmd = update + ' ' + projDir;
+        var cmd = updateScript + ' ' + projDir;
         rmDirInTestDir(projDir);
         runScript(cmd, done, function(error, stdout, stderr) {
             expect(error.code).toBe(66);
@@ -109,8 +109,8 @@ describe('bin/update', function () {
         });
     });
     it('should rc=0 and an updated cordova.js when properly called', function(done) {
-        var cmd1 = script + ' ' + projDir + ' projName',
-            cmd2 = update + ' ' + projDir,
+        var cmd1 = createScript + ' ' + projDir + ' pkg projName',
+            cmd2 = updateScript + ' ' + projDir,
             tgt = rmDirInTestDir(projDir),
             cordovajs = path.join(tgt, 'app', 'www', 'cordova.js'),
             libCordovajs = path.join(ROOT, 'cordova-lib', 'cordova.js');
@@ -130,7 +130,7 @@ describe('default project layout', function() {
         projName = 'projName',
         manifest,
         manifestFile,
-        cmd = script + ' ' + projDir + ' ' + projName,
+        cmd = createScript + ' ' + projDir + ' pkg ' + projName,
         tgt = rmDirInTestDir(projDir);
     beforeEach(function() {
         var done = false;
